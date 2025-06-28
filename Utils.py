@@ -275,22 +275,22 @@ def compute_spherical_spring_grad_single_trg(pt1, pt2, pt3, bary, orient, S, K):
                     D = K*S
                     if orient == 1:
                         g1 = -1*D*np.array([0, 1, 0])
-                        g2 = -1*D*np.array([0, -np.sqrt(2), np.sqrt(2)])
-                        g3 = -1*D*np.array([0, -np.sqrt(2), -np.sqrt(2)])
+                        g2 = -1*D*np.array([0, -np.sqrt(2)/2, np.sqrt(2)/2])
+                        g3 = -1*D*np.array([0, -np.sqrt(2)/2, -np.sqrt(2)/2])
                     else: #orient = =1
                         g1 = -1*D*np.array([0, 1, 0])
-                        g2 = -1*D*np.array([0, -np.sqrt(2), -np.sqrt(2)])
-                        g3 = -1*D*np.array([0, -np.sqrt(2), np.sqrt(2)])
+                        g2 = -1*D*np.array([0, -np.sqrt(2)/2, -np.sqrt(2)/2])
+                        g3 = -1*D*np.array([0, -np.sqrt(2)/2, np.sqrt(2)/2])
             else:
                 D = K*(4*np.pi-S)
                 if orient == 1:
                     g1 = D*np.array([0, 1, 0])
-                    g2 = D*np.array([0, -np.sqrt(2), np.sqrt(2)])
-                    g3 = D*np.array([0, -np.sqrt(2), -np.sqrt(2)])
+                    g2 = D*np.array([0, -np.sqrt(2)/2, np.sqrt(2)/2])
+                    g3 = D*np.array([0, -np.sqrt(2)/2, -np.sqrt(2)/2])
                 else:
                     g1 = D*np.array([0, 1, 0])
-                    g2 = D*np.array([0, -np.sqrt(2), -np.sqrt(2)])
-                    g3 = D*np.array([0, -np.sqrt(2), np.sqrt(2)])
+                    g2 = D*np.array([0, -np.sqrt(2)/2, -np.sqrt(2)/2])
+                    g3 = D*np.array([0, -np.sqrt(2)/2, np.sqrt(2)/2])
         else:
             g1 = 0
             g2 = 0
@@ -1126,3 +1126,21 @@ def find_closest(array, value):
     idx = distances.argmin()
     return idx
 
+
+def great_circle_path(p1, p2, num_points=50):
+    """
+    Compute points along the geodesic between p1 and p2
+    """
+    t = np.linspace(0, 1, num_points)
+    p1, p2 = np.array(p1), np.array(p2)
+    
+    p1 /= np.linalg.norm(p1)
+    p2 /= np.linalg.norm(p2)
+    
+    angles = np.arccos(np.clip(np.dot(p1, p2), -1, 1))
+    sin_angles = np.sin(angles)
+    
+    if sin_angles == 0:  # Avoid division by zero
+        return np.array([p1] * num_points)
+    
+    return (np.sin((1 - t) * angles)[:, None] * p1 + np.sin(t * angles)[:, None] * p2) / sin_angles
